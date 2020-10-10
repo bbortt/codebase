@@ -1,0 +1,31 @@
+version: '2.1'
+services:
+  postgresql:
+    image: postgres:11-alpine
+    container_name: halbzit_postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=halbzit
+      - POSTGRES_PASSWORD=halbzit
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U halbzit" ]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+  migration:
+    build: 'flyway'
+    container_name: halbzit_flyway
+    networks:
+      - backend
+    volumes:
+      - ../src/main/resources/db/migration:/flyway/sql
+    depends_on:
+      postgresql:
+        condition: service_healthy
+networks:
+  frontend:
+  backend:
